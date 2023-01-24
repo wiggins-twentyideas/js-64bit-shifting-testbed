@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>i64_bitwise testbed</title>
+</head>
+<body>
+	<p>Hello from i64_bitwise test.</p>
+	<div>num_times=<input id="num_times" value="1000000"> <button onclick="test_funcs()">Re-run</button></div>
+
+	<div id="results"></div>
+
+	<script>
+		var i64_shr_u = undefined
+		var i32_shr_u;
+
+		var num_times = 1000000;
+		var $results = document.getElementById('results');
+
+		function test_funcs() {
+			num_times = Number(document.getElementById('num_times').value)
+
+			$results.innerHTML = '';
+
+			test_i32_shru();
+			test_tripleshift();
+			test_i64_shru();
+			test_bignum();
+		}
+
+		function test_i32_shru() {
+			var start = performance.now();
+			for (var i=0; i < num_times; i++) {
+				const foo = i32_shr_u(0xbeef0000, 16)
+			}
+			var end = performance.now();
+			println(`i32_shr_u(0xbeef0000,16) = ${end - start}ms`);
+
+		}
+		function test_tripleshift() {
+			var start = performance.now();
+			for (var i=0; i < num_times; i++) {
+				const foo = 0xbeef0000 >>> 16
+			}
+			var end = performance.now();
+			println(`0xbeef0000 >>> 16 = ${end - start}ms`);
+		}
+
+
+		function test_i64_shru() {
+			var start = performance.now();
+			for (var i=0; i < num_times; i++) {
+				const foo = i64_shr_u(0xdeadbeef00000000n, 32n)
+			}
+			var end = performance.now();
+			println(`i64_shr_u(0xbeef000000000000,32) = ${end - start}ms`);
+
+		}
+		function test_bignum() {
+			var start = performance.now();
+			for (var i=0; i < num_times; i++) {
+				const foo = 0xbeef000000000000n >> 32n
+			}
+			var end = performance.now();
+			println(`0xbeef000000000000n >> 32n = ${end - start}ms`);
+		}
+
+		function println(str) {
+			var p = document.createElement('p');
+			p.innerHTML = str;
+			$results.append(p)
+		}
+
+		WebAssembly.instantiateStreaming(fetch("i64_bitwise.wasm"))
+			.then((obj) => {
+				println(`Hello from i64_bitwise test. num_times=${num_times}`)
+
+				i64_shr_u = obj.instance.exports.i64_shr_u;
+				i32_shr_u = obj.instance.exports.i32_shr_u;
+
+				test_funcs();
+
+			  }
+			);
+	</script>
+</body>
+</html>
